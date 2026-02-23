@@ -6,7 +6,6 @@ A pygame survival game where balls spawn over time.
 - Increasing difficulty
 - Survival timer
 - Score logging
-- Leaderboard logic (local)
 
 ## Tech
 - Python
