@@ -2,7 +2,6 @@ import pygame
 import sys
 import random
 import pandas as pd
-import winsound
 
 class Ball:
     def __init__(self,number, fx, fy, vx, vy):
@@ -37,7 +36,7 @@ width, height = 1200, 800
 screen = pygame.display.set_mode((width, height))
 clock = pygame.time.Clock()
 
-x, y = int(width/2), int(height/2)
+x, y = width//2, height//2
 v = 5
 speed = [-12,-8,-6,-4,-3,3,4,6,8,12]
 radius = 20
@@ -135,7 +134,6 @@ while True:
     else:
         if limiter==0:
             limiter=1
-            winsound.PlaySound("Data/damage.wav", winsound.SND_ASYNC)
             with open("Data/log.csv",'a') as f:
                 f.write(f'{int(survival_time)}\n')
         font = pygame.font.SysFont(None, 20)
@@ -163,6 +161,31 @@ while True:
         count_text = font.render(f"Max Survival Time: {max_time}", True, (255, 255, 255))
         text_rect = count_text.get_rect(center=(width//2, height//2+40))
         screen.blit(count_text, text_rect)
+
+        count_text = font.render(f"Press R to restart", True, (255, 255, 255))
+        text_rect = count_text.get_rect(center=(width//2, height//2+60))
+        screen.blit(count_text, text_rect)
+
+        keys = pygame.key.get_pressed()
+
+        if keys[pygame.K_r]:
+            x, y = width//2, height//2
+            v = 5
+            speed = [-12,-8,-6,-4,-3,3,4,6,8,12]
+            radius = 20
+
+            balls = [Ball(
+                        number=1,
+                        fx=random.randint(10,width-10),
+                        fy=random.randint(10,height-10),
+                        vx=random.choice(speed),
+                        vy=random.choice(speed)
+                    )]
+            time = 0
+            stopwatch = 7
+            survival_time = 0
+            health = 'O O O O O'
+            limiter = 0
 
     pygame.display.flip()
     clock.tick(60)
