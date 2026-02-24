@@ -1,4 +1,4 @@
-# Ball Survival Chaos 🎮
+# Survive The Balls
 
 A pygame survival game where balls spawn over time.
 
