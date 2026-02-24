@@ -13,5 +13,6 @@ A pygame survival game where balls spawn over time.
 - Pygame
 - Pandas
 
-## Controls
+## How to play
+- Open Game.py
 - Use arrow keys to move
