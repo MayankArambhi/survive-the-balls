@@ -2,6 +2,7 @@ import pygame
 import sys
 import random
 import pandas as pd
+import winsound
 
 class Ball:
     def __init__(self,number, fx, fy, vx, vy):
@@ -16,15 +17,20 @@ class Ball:
         self.fy += self.vy
         if self.fx>= width-10 or self.fx<=10:
             self.vx = -self.vx
+            bounce_sound.play()
+            
         if self.fy>= height-10 or self.fy<=10:
             self.vy = -self.vy
+            bounce_sound.play()
+            
 
     def show_ball(self):
         pygame.draw.circle(screen, (255, 0, 0), (self.fx, self.fy), 10)
 
     def eat(self,x,y):
         balls.remove(self)
-
+        damage_sound.play()
+        
 pygame.init()
 
 width, height = 1200, 800
@@ -49,9 +55,25 @@ survival_time = 0
 health = 'O O O O O'
 limiter = 0
 
+pygame.mixer.init()
+bounce_sound = pygame.mixer.Sound("Data/bounce.wav")
+bounce_sound.set_volume(0.3)
+damage_sound = pygame.mixer.Sound("Data/damage.wav")
+damage_sound.set_volume(0.3)
+pygame.mixer.music.load("Data/bg.wav")
+pygame.mixer.music.play(-1)  # -1 = infinite loop
+
+def generate_stars(w,h):
+    x,y = random.randint(1,w),random.randint(1,h)
+    return x,y
+
+stars = []
+for i in range(100):
+    stars.append(generate_stars(width,height))
+
 while True:
     pygame.display.set_caption("Survive The Balls")
-    icon = pygame.image.load("icon.png")
+    icon = pygame.image.load("Data/icon.png")
     pygame.display.set_icon(icon)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -60,6 +82,8 @@ while True:
 
     # clear screen
     screen.fill((0, 0, 0))
+    for star in stars:
+        pygame.draw.circle(screen, (255,255,255), star, 1)
     # draw ball
     if health!='':
         pygame.draw.circle(screen, (50, 50, 150), (x, y), radius)
@@ -111,7 +135,8 @@ while True:
     else:
         if limiter==0:
             limiter=1
-            with open("log.csv",'a') as f:
+            winsound.PlaySound("Data/damage.wav", winsound.SND_ASYNC)
+            with open("Data/log.csv",'a') as f:
                 f.write(f'{int(survival_time)}\n')
         font = pygame.font.SysFont(None, 20)
         count_text = font.render(f"Balls: {len(balls)}", True, (255, 255, 255))
@@ -131,7 +156,7 @@ while True:
         text_rect = count_text.get_rect(center=(width//2, height//2))
         screen.blit(count_text, text_rect)
 
-        log = pd.read_csv('log.csv')
+        log = pd.read_csv('Data/log.csv')
         font = pygame.font.SysFont(None, 25)
 
         max_time = log['time'].max()
