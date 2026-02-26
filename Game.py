@@ -1,7 +1,6 @@
 import pygame
 import sys
 import random
-import pandas as pd
 
 class Ball:
     def __init__(self,number, fx, fy, vx, vy):
@@ -10,25 +9,31 @@ class Ball:
         self.fy = fy
         self.vx = vx
         self.vy = vy
+        self.last_bounce_time = 0
 
     def move(self):
         self.fx += self.vx
         self.fy += self.vy
+        current_time = pygame.time.get_ticks()
+
         if self.fx>= width-10 or self.fx<=10:
             self.vx = -self.vx
-            bounce_sound.play()
+            if current_time - self.last_bounce_time > 20:
+                bounce_channel.play(bounce_sound)
+                self.last_bounce_time = current_time
             
         if self.fy>= height-10 or self.fy<=10:
             self.vy = -self.vy
-            bounce_sound.play()
-            
+            if current_time - self.last_bounce_time > 20:
+                bounce_channel.play(bounce_sound)
+                self.last_bounce_time = current_time
 
     def show_ball(self):
         pygame.draw.circle(screen, (255, 0, 0), (self.fx, self.fy), 10)
 
     def eat(self,x,y):
         balls.remove(self)
-        damage_sound.play()
+        damage_channel.play(damage_sound)
         
 pygame.init()
 
@@ -55,8 +60,14 @@ health = 'O O O O O'
 limiter = 0
 
 pygame.mixer.init()
+
+pygame.mixer.set_num_channels(32)
+
+bounce_channel = pygame.mixer.Channel(1)
+damage_channel = pygame.mixer.Channel(2)
+
 bounce_sound = pygame.mixer.Sound("Data/bounce.wav")
-bounce_sound.set_volume(0.3)
+bounce_sound.set_volume(0.15)
 damage_sound = pygame.mixer.Sound("Data/damage.wav")
 damage_sound.set_volume(0.3)
 pygame.mixer.music.load("Data/bg.wav")
@@ -70,10 +81,11 @@ stars = []
 for i in range(100):
     stars.append(generate_stars(width,height))
 
+pygame.display.set_caption("Survive The Balls")
+icon = pygame.image.load("Data/icon.png")
+pygame.display.set_icon(icon)
+
 while True:
-    pygame.display.set_caption("Survive The Balls")
-    icon = pygame.image.load("Data/icon.png")
-    pygame.display.set_icon(icon)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
@@ -82,7 +94,7 @@ while True:
     # clear screen
     screen.fill((0, 0, 0))
     for star in stars:
-        pygame.draw.circle(screen, (255,255,255), star, 1)
+        pygame.draw.circle(screen, (255,255,255), star, random.choice([1,1,1,2,3]))
     # draw ball
     if health!='':
         pygame.draw.circle(screen, (50, 50, 150), (x, y), radius)
@@ -154,11 +166,15 @@ while True:
         text_rect = count_text.get_rect(center=(width//2, height//2))
         screen.blit(count_text, text_rect)
 
-        log = pd.read_csv('Data/log.csv')
         font = pygame.font.SysFont(None, 25)
+        with open("Data/log.csv",'r') as f:
+            header = f.readline()
+            m = 0
+            for line in f.readlines():
+                if int(line.strip())>m:
+                    m = int(line.strip())
 
-        max_time = log['time'].max()
-        count_text = font.render(f"Max Survival Time: {max_time}", True, (255, 255, 255))
+        count_text = font.render(f"Max Survival Time: {m}", True, (255, 255, 255))
         text_rect = count_text.get_rect(center=(width//2, height//2+40))
         screen.blit(count_text, text_rect)
 
